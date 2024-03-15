@@ -1,160 +1,69 @@
 import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public enum ScoringCategory implements ScoringStrategy {
-    CHANCE {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return roll.getD1() + roll.getD2() + roll.getD3() + roll.getD4() + roll.getD5();
-        }
-    },
-    YATZY {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            for (int i = 0; i != 6; i++)
-                if (counts[i] == 5)
-                    return 50;
-            return 0;
-        }
-    },
-    ONES {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 1)
-                .sum();
-        }
-    },
-    TWOES {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 2)
-                .sum();
-        }
-    },
-    THREES {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 3)
-                .sum();
-        }
-    },
-    FOURS {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 4)
-                .sum();
-        }
-    },
-    FIVES {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 5)
-                .sum();
-        }
-    },
-    SIXES {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            return Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
-                .filter(die -> die == 6)
-                .sum();
-        }
-    },
-    ONE_PAIR {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            return findHighestMultiple(counts, 2) * 2;
-        }
-    },
-    TWO_PAIR {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            int firstPair = findHighestMultiple(counts, 2);
-            if (firstPair > 0) {
-                counts[firstPair - 1] = 0;
-                int secondPair = findHighestMultiple(counts, 2);
-                if (secondPair > 0) {
-                    return firstPair * 2 + secondPair * 2;
-                }
-            }
-            return 0;
-        }
-    },
-    FOUR_OF_A_KIND {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            int fourOfAKind = findHighestMultiple(counts, 4);
-            return fourOfAKind * 4;
-        }
-    },
-    THREE_OF_A_KIND {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            int threeOfAKind = findHighestMultiple(counts, 3);
-            return threeOfAKind * 3;
-        }
-    }, SMALL_STRAIGHT {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] tallies = countDice(roll);
-            if (tallies[0] == 1 &&
-                tallies[1] == 1 &&
-                tallies[2] == 1 &&
-                tallies[3] == 1 &&
-                tallies[4] == 1)
-                return 15;
-            return 0;
-        }
-    }, LARGE_STRAIGHT {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] tallies = countDice(roll);
-            if (tallies[1] == 1 &&
-                tallies[2] == 1 &&
-                tallies[3] == 1 &&
-                tallies[4] == 1
-                && tallies[5] == 1)
-                return 20;
-            return 0;
-        }
-    }, FULL_HOUSE {
-        @Override
-        public int calculateScore(DiceRoll roll) {
-            int[] counts = countDice(roll);
-            boolean hasThreeOfAKind = false;
-            boolean hasPair = false;
-            for (int count : counts) {
-                if (count == 3) hasThreeOfAKind = true;
-                if (count == 2) hasPair = true;
-            }
-            return hasThreeOfAKind && hasPair ? roll.getD1() + roll.getD2() + roll.getD3() + roll.getD4() + roll.getD5() : 0;
-        }
-    };
+public enum ScoringCategory {
+    CHANCE(roll -> Arrays.stream(roll.getDice()).sum()),
+    YATZY(roll -> Arrays.stream(roll.getDice()).distinct().count() == 1 ? 50 : 0),
+    ONES(roll -> sumForValue(roll, 1)),
+    TWOS(roll -> sumForValue(roll, 2)),
+    THREES(roll -> sumForValue(roll, 3)),
+    FOURS(roll -> sumForValue(roll, 4)),
+    FIVES(roll -> sumForValue(roll, 5)),
+    SIXES(roll -> sumForValue(roll, 6)),
+    ONE_PAIR(roll -> findHighestMultiple(roll, 2) * 2),
+    TWO_PAIR(roll -> {
+        int[] pairs = findPairs(roll);
+        return pairs.length >= 2 ? Arrays.stream(pairs).sorted().skip(pairs.length - 2).sum() * 2 : 0;
+    }),
+    THREE_OF_A_KIND(roll -> findHighestMultiple(roll, 3) * 3),
+    FOUR_OF_A_KIND(roll -> findHighestMultiple(roll, 4) * 4),
+    SMALL_STRAIGHT(roll -> IntStream.rangeClosed(1, 5).allMatch(i -> Arrays.stream(roll.getDice()).anyMatch(die -> die == i)) ? 15 : 0),
+    LARGE_STRAIGHT(roll -> IntStream.rangeClosed(2, 6).allMatch(i -> Arrays.stream(roll.getDice()).anyMatch(die -> die == i)) ? 20 : 0),
+    FULL_HOUSE(roll -> {
+        Map<Integer, Long> counts = findMultiples(roll);
+        boolean hasThreeOfAKind = counts.containsValue(3L);
+        boolean hasPair = counts.values().removeIf(v -> v == 3) && counts.containsValue(2L);
+        return hasThreeOfAKind && hasPair ? Arrays.stream(roll.getDice()).sum() : 0;
+    });
 
-    private static int[] countDice(DiceRoll roll) {
-        int[] counts = new int[6];
-        int[] dice = {roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()};
-        for (int die : dice) {
-            counts[die - 1]++;
-        }
-        return counts;
+    private final ScoringStrategy strategy;
+
+    ScoringCategory(ScoringStrategy strategy) {
+        this.strategy = strategy;
     }
 
-    private static int findHighestMultiple(int[] counts, int multiple) {
-        for (int i = 5; i >= 0; i--) {
-            if (counts[i] >= multiple) {
-                return i + 1;
-            }
-        }
-        return 0;
+    public int score(DiceRoll roll) {
+        return this.strategy.calculateScore(roll);
     }
+
+    private static int sumForValue(DiceRoll roll, int value) {
+        return Arrays.stream(roll.getDice()).filter(die -> die == value).sum();
+    }
+
+    private static Map<Integer, Long> findMultiples(DiceRoll roll) {
+        return Arrays.stream(roll.getDice())
+            .boxed()
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+    }
+
+    private static int findHighestMultiple(DiceRoll roll, int multiple) {
+        Map<Integer, Long> counts = findMultiples(roll);
+        return counts.entrySet().stream()
+            .filter(entry -> entry.getValue() >= multiple)
+            .mapToInt(Map.Entry::getKey)
+            .max()
+            .orElse(0);
+    }
+
+    private static int[] findPairs(DiceRoll roll) {
+        Map<Integer, Long> counts = findMultiples(roll);
+        return counts.entrySet().stream()
+            .filter(entry -> entry.getValue() >= 2)
+            .mapToInt(Map.Entry::getKey)
+            .toArray();
+    }
+
 }

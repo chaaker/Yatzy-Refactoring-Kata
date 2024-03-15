@@ -1,5 +1,5 @@
 public class YatziGame {
     public int score(DiceRoll roll, ScoringCategory category) {
-        return category.calculateScore(roll);
+        return category.score(roll);
     }
 }

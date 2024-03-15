@@ -26,8 +26,8 @@ public class YatzyTest {
 
     @Test
     public void test_2s() {
-        assertEquals(4, game.score(new DiceRoll(1,2,3,2,6), ScoringCategory.TWOES));
-        assertEquals(10, game.score(new DiceRoll(2,2,2,2,2), ScoringCategory.TWOES));
+        assertEquals(4, game.score(new DiceRoll(1,2,3,2,6), ScoringCategory.TWOS));
+        assertEquals(10, game.score(new DiceRoll(2,2,2,2,2), ScoringCategory.TWOS));
     }
 
     @Test
