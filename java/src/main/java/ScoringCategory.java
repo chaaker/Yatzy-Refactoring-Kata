@@ -69,48 +69,38 @@ public enum ScoringCategory implements ScoringStrategy {
         @Override
         public int calculateScore(DiceRoll roll) {
             int[] counts = countDice(roll);
-            int at;
-            for (at = 0; at != 6; at++)
-                if (counts[6 - at - 1] >= 2)
-                    return (6 - at) * 2;
-            return 0;
+            return findHighestMultiple(counts, 2) * 2;
         }
     },
     TWO_PAIR {
         @Override
         public int calculateScore(DiceRoll roll) {
             int[] counts = countDice(roll);
-            int n = 0;
-            int score = 0;
-            for (int i = 0; i < 6; i += 1)
-                if (counts[6 - i - 1] >= 2) {
-                    n++;
-                    score += (6 - i);
+            int firstPair = findHighestMultiple(counts, 2);
+            if (firstPair > 0) {
+                counts[firstPair - 1] = 0;
+                int secondPair = findHighestMultiple(counts, 2);
+                if (secondPair > 0) {
+                    return firstPair * 2 + secondPair * 2;
                 }
-            if (n == 2)
-                return score * 2;
-            else
-                return 0;
+            }
+            return 0;
         }
     },
     FOUR_OF_A_KIND {
         @Override
         public int calculateScore(DiceRoll roll) {
-            int[] tallies = countDice(roll);
-            for (int i = 0; i < 6; i++)
-                if (tallies[i] >= 4)
-                    return (i + 1) * 4;
-            return 0;
+            int[] counts = countDice(roll);
+            int fourOfAKind = findHighestMultiple(counts, 4);
+            return fourOfAKind * 4;
         }
     },
     THREE_OF_A_KIND {
         @Override
         public int calculateScore(DiceRoll roll) {
-            int[] tallies = countDice(roll);
-            for (int i = 0; i < 6; i++)
-                if (tallies[i] >= 3)
-                    return (i + 1) * 3;
-            return 0;
+            int[] counts = countDice(roll);
+            int threeOfAKind = findHighestMultiple(counts, 3);
+            return threeOfAKind * 3;
         }
     }, SMALL_STRAIGHT {
         @Override
@@ -157,5 +147,14 @@ public enum ScoringCategory implements ScoringStrategy {
             counts[die - 1]++;
         }
         return counts;
+    }
+
+    private static int findHighestMultiple(int[] counts, int multiple) {
+        for (int i = 5; i >= 0; i--) {
+            if (counts[i] >= multiple) {
+                return i + 1;
+            }
+        }
+        return 0;
     }
 }
