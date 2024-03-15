@@ -7,12 +7,12 @@ import java.util.stream.IntStream;
 public enum ScoringCategory {
     CHANCE(roll -> Arrays.stream(roll.getDice()).sum()),
     YATZY(roll -> Arrays.stream(roll.getDice()).distinct().count() == 1 ? 50 : 0),
-    ONES(roll -> sumForValue(roll, 1)),
-    TWOS(roll -> sumForValue(roll, 2)),
-    THREES(roll -> sumForValue(roll, 3)),
-    FOURS(roll -> sumForValue(roll, 4)),
-    FIVES(roll -> sumForValue(roll, 5)),
-    SIXES(roll -> sumForValue(roll, 6)),
+    ONES(scoreForValue(1)),
+    TWOS(scoreForValue(2)),
+    THREES(scoreForValue(3)),
+    FOURS(scoreForValue(4)),
+    FIVES(scoreForValue(5)),
+    SIXES(scoreForValue(6)),
     ONE_PAIR(roll -> findHighestMultiple(roll, 2) * 2),
     TWO_PAIR(roll -> {
         int[] pairs = findPairs(roll);
@@ -39,16 +39,32 @@ public enum ScoringCategory {
         return this.strategy.calculateScore(roll);
     }
 
-    private static int sumForValue(DiceRoll roll, int value) {
-        return Arrays.stream(roll.getDice()).filter(die -> die == value).sum();
+    /**
+     * Calculates the score for a given value by summing dice that match the value
+     * @param value The target value to sum
+     * @return The scoring strategy for summing dice of the given value
+     */
+    private static ScoringStrategy scoreForValue(int value) {
+        return roll -> Arrays.stream(roll.getDice()).filter(die -> die == value).sum();
     }
 
+    /**
+     * Finds the multiples of each die in a roll keyed by the die value
+     * @param roll The roll to analyze
+     * @return A map of die values to the number of times they appear in the roll
+     */
     private static Map<Integer, Long> findMultiples(DiceRoll roll) {
         return Arrays.stream(roll.getDice())
             .boxed()
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
     }
 
+    /**
+     * Finds the highest multiple of a die in a roll
+     * @param roll The roll to analyze
+     * @param multiple The minimum number of times a die must appear to be considered
+     * @return The value of the die that appears the most times in the roll
+     */
     private static int findHighestMultiple(DiceRoll roll, int multiple) {
         Map<Integer, Long> counts = findMultiples(roll);
         return counts.entrySet().stream()
@@ -58,6 +74,11 @@ public enum ScoringCategory {
             .orElse(0);
     }
 
+    /**
+     * Finds the pairs in a roll
+     * @param roll The roll to analyze
+     * @return An array of the values of the dice that appear in pairs
+     */
     private static int[] findPairs(DiceRoll roll) {
         Map<Integer, Long> counts = findMultiples(roll);
         return counts.entrySet().stream()

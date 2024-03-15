@@ -1,114 +1,81 @@
-import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class YatzyTest {
-    YatziGame game = new YatziGame();
+    private final YatziGame game = new YatziGame();
 
-    @Test
-    public void chance_scores_sum_of_all_dice() {
-        assertEquals(15, game.score(new DiceRoll(2,3,4,5,1), ScoringCategory.CHANCE));
-        assertEquals(16, game.score(new DiceRoll(3,3,4,5,1), ScoringCategory.CHANCE));
+    @ParameterizedTest
+    @MethodSource("diceRollsAndScores")
+    void testScoring(ScoringCategory category, int d1, int d2, int d3, int d4, int d5, int expectedScore) {
+        assertEquals(expectedScore, game.score(new DiceRoll(d1, d2, d3, d4, d5), category));
     }
 
-    @Test public void yatzy_scores_50() {
-        assertEquals(50, game.score(new DiceRoll(4,4,4,4,4), ScoringCategory.YATZY));
-        assertEquals(50, game.score(new DiceRoll(6,6,6,6,6), ScoringCategory.YATZY));
-        assertEquals(0, game.score(new DiceRoll(6,6,6,6,3), ScoringCategory.YATZY));
-    }
+    private static Stream<Arguments> diceRollsAndScores() {
+        return Stream.of(
+            Arguments.of(ScoringCategory.CHANCE, 2, 3, 4, 5, 1, 15),
+            Arguments.of(ScoringCategory.CHANCE, 3, 3, 4, 5, 1, 16),
 
-    @Test public void test_1s() {
-        assertEquals(1, game.score(new DiceRoll(1, 2, 3, 4, 5), ScoringCategory.ONES));
-        assertEquals(2, game.score(new DiceRoll(1,2,1,4,5), ScoringCategory.ONES));
-        assertEquals(0, game.score(new DiceRoll(6,2,2,4,5), ScoringCategory.ONES));
-        assertEquals(4, game.score(new DiceRoll(1,2,1,1,1), ScoringCategory.ONES));
-    }
+            Arguments.of(ScoringCategory.YATZY, 4, 4, 4, 4, 4, 50),
+            Arguments.of(ScoringCategory.YATZY, 6, 6, 6, 6, 6, 50),
+            Arguments.of(ScoringCategory.YATZY, 6, 6, 6, 6, 3, 0),
 
-    @Test
-    public void test_2s() {
-        assertEquals(4, game.score(new DiceRoll(1,2,3,2,6), ScoringCategory.TWOS));
-        assertEquals(10, game.score(new DiceRoll(2,2,2,2,2), ScoringCategory.TWOS));
-    }
+            Arguments.of(ScoringCategory.ONES, 1, 2, 3, 4, 5, 1),
+            Arguments.of(ScoringCategory.ONES, 1, 2, 1, 4, 5, 2),
+            Arguments.of(ScoringCategory.ONES, 6, 2, 2, 4, 5, 0),
+            Arguments.of(ScoringCategory.ONES, 1, 2, 1, 1, 1, 4),
 
-    @Test
-    public void test_threes() {
-        assertEquals(6, game.score(new DiceRoll(1,2,3,2,3), ScoringCategory.THREES));
-        assertEquals(12, game.score(new DiceRoll(2,3,3,3,3), ScoringCategory.THREES));
-    }
+            Arguments.of(ScoringCategory.TWOS, 1, 2, 3, 2, 6, 4),
+            Arguments.of(ScoringCategory.TWOS, 2, 2, 2, 2, 2, 10),
 
-    @Test
-    public void fours_test()
-    {
-        assertEquals(12, game.score(new DiceRoll(4,4,4,5,5), ScoringCategory.FOURS));
-        assertEquals(8, game.score(new DiceRoll(4,4,5,5,5), ScoringCategory.FOURS));
-        assertEquals(4, game.score(new DiceRoll(4,5,5,5,5), ScoringCategory.FOURS));
-    }
+            Arguments.of(ScoringCategory.THREES, 1, 2, 3, 2, 3, 6),
+            Arguments.of(ScoringCategory.THREES, 2, 3, 3, 3, 3, 12),
 
-    @Test
-    public void fives() {
-        assertEquals(10, game.score(new DiceRoll(4,4,4,5,5), ScoringCategory.FIVES));
-        assertEquals(15, game.score(new DiceRoll(4,4,5,5,5), ScoringCategory.FIVES));
-        assertEquals(20, game.score(new DiceRoll(4,5,5,5,5), ScoringCategory.FIVES));
-    }
+            Arguments.of(ScoringCategory.FOURS, 4, 4, 4, 5, 5, 12),
+            Arguments.of(ScoringCategory.FOURS, 4, 4, 5, 5, 5, 8),
+            Arguments.of(ScoringCategory.FOURS, 4, 5, 5, 5, 5, 4),
 
-    @Test
-    public void sixes_test() {
-        assertEquals(0, game.score(new DiceRoll(4,4,4,5,5), ScoringCategory.SIXES));
-        assertEquals(6, game.score(new DiceRoll(4,4,6,5,5), ScoringCategory.SIXES));
-        assertEquals(18, game.score(new DiceRoll(6,5,6,6,5), ScoringCategory.SIXES));
-    }
+            Arguments.of(ScoringCategory.FIVES, 4, 4, 4, 5, 5, 10),
+            Arguments.of(ScoringCategory.FIVES, 4, 4, 5, 5, 5, 15),
+            Arguments.of(ScoringCategory.FIVES, 4, 5, 5, 5, 5, 20),
 
-    @Test
-    public void one_pair() {
-        assertEquals(6, game.score(new DiceRoll(3,4,3,5,6), ScoringCategory.ONE_PAIR));
-        assertEquals(10, game.score(new DiceRoll(5,3,3,3,5), ScoringCategory.ONE_PAIR));
-        assertEquals(12, game.score(new DiceRoll(5,3,6,6,5), ScoringCategory.ONE_PAIR));
-        assertEquals(0, game.score(new DiceRoll(1,3,2,6,5), ScoringCategory.ONE_PAIR));
-        assertEquals(2, game.score(new DiceRoll(1,1,1,1,1), ScoringCategory.ONE_PAIR));
-    }
+            Arguments.of(ScoringCategory.SIXES, 4, 4, 4, 5, 5, 0),
+            Arguments.of(ScoringCategory.SIXES, 4, 4, 6, 5, 5, 6),
+            Arguments.of(ScoringCategory.SIXES, 6, 5, 6, 6, 5, 18),
 
-    @Test
-    public void two_Pair() {
-        assertEquals(16, game.score(new DiceRoll(3,3,5,4,5), ScoringCategory.TWO_PAIR));
-        assertEquals(16, game.score(new DiceRoll(3,3,5,5,5), ScoringCategory.TWO_PAIR));
-        assertEquals(0, game.score(new DiceRoll(3,1,5,5,5), ScoringCategory.TWO_PAIR));
-        assertEquals(0, game.score(new DiceRoll(1,1,1,1,1), ScoringCategory.TWO_PAIR));
-    }
+            Arguments.of(ScoringCategory.ONE_PAIR, 3, 4, 3, 5, 6, 6),
+            Arguments.of(ScoringCategory.ONE_PAIR, 5, 3, 3, 3, 5, 10),
+            Arguments.of(ScoringCategory.ONE_PAIR, 5, 3, 6, 6, 5, 12),
+            Arguments.of(ScoringCategory.ONE_PAIR, 1, 3, 2, 6, 5, 0),
+            Arguments.of(ScoringCategory.ONE_PAIR, 1, 1, 1, 1, 1, 2),
 
-    @Test
-    public void three_of_a_kind()
-    {
-        assertEquals(9, game.score(new DiceRoll(3,3,3,4,5), ScoringCategory.THREE_OF_A_KIND));
-        assertEquals(15, game.score(new DiceRoll(5,3,5,4,5), ScoringCategory.THREE_OF_A_KIND));
-        assertEquals(9, game.score(new DiceRoll(3,3,3,3,5), ScoringCategory.THREE_OF_A_KIND));
-        assertEquals(9, game.score(new DiceRoll(3,3,3,3,3), ScoringCategory.THREE_OF_A_KIND));
-        assertEquals(0, game.score(new DiceRoll(1,2,4,3,3), ScoringCategory.THREE_OF_A_KIND));
-    }
+            Arguments.of(ScoringCategory.TWO_PAIR, 3, 3, 5, 4, 5, 16),
+            Arguments.of(ScoringCategory.TWO_PAIR, 3, 3, 5, 5, 5, 16),
+            Arguments.of(ScoringCategory.TWO_PAIR, 3, 1, 5, 5, 5, 0),
+            Arguments.of(ScoringCategory.TWO_PAIR, 1, 1, 1, 1, 1, 0),
 
-    @Test
-    public void four_of_a_kind() {
-        assertEquals(12, game.score(new DiceRoll(3,3,3,3,5), ScoringCategory.FOUR_OF_A_KIND));
-        assertEquals(20, game.score(new DiceRoll(5,5,5,4,5), ScoringCategory.FOUR_OF_A_KIND));
-        assertEquals(0, game.score(new DiceRoll(5,5,5,4,1), ScoringCategory.FOUR_OF_A_KIND));
-    }
+            Arguments.of(ScoringCategory.THREE_OF_A_KIND, 3, 3, 3, 4, 5, 9),
+            Arguments.of(ScoringCategory.THREE_OF_A_KIND, 5, 3, 5, 4, 5, 15),
+            Arguments.of(ScoringCategory.THREE_OF_A_KIND, 3, 3, 3, 3, 5, 9),
+            Arguments.of(ScoringCategory.THREE_OF_A_KIND, 3, 3, 3, 3, 3, 9),
+            Arguments.of(ScoringCategory.THREE_OF_A_KIND, 1, 2, 4, 3, 3, 0),
 
-    @Test
-    public void smallStraight() {
-        assertEquals(15, game.score(new DiceRoll(1,2,3,4,5), ScoringCategory.SMALL_STRAIGHT));
-        assertEquals(15, game.score(new DiceRoll(2,3,4,5,1), ScoringCategory.SMALL_STRAIGHT));
-        assertEquals(0, game.score(new DiceRoll(1,2,2,4,5), ScoringCategory.SMALL_STRAIGHT));
-    }
+            Arguments.of(ScoringCategory.FOUR_OF_A_KIND, 3, 3, 3, 3, 5, 12),
+            Arguments.of(ScoringCategory.FOUR_OF_A_KIND, 5, 5, 5, 4, 5, 20),
+            Arguments.of(ScoringCategory.FOUR_OF_A_KIND, 5, 5, 5, 4, 1, 0),
 
-    @Test
-    public void largeStraight() {
-        assertEquals(20, game.score(new DiceRoll(6,2,3,4,5), ScoringCategory.LARGE_STRAIGHT));
-        assertEquals(20, game.score(new DiceRoll(2,3,4,5,6), ScoringCategory.LARGE_STRAIGHT));
-        assertEquals(0, game.score(new DiceRoll(1,2,2,4,5), ScoringCategory.LARGE_STRAIGHT));
-    }
+            Arguments.of(ScoringCategory.SMALL_STRAIGHT, 1, 2, 3, 4, 5, 15),
+            Arguments.of(ScoringCategory.SMALL_STRAIGHT, 2, 3, 4, 5, 1, 15),
+            Arguments.of(ScoringCategory.SMALL_STRAIGHT, 1, 2, 2, 4, 5, 0),
 
-    @Test
-    public void fullHouse() {
-        assertEquals(18, game.score(new DiceRoll(6,2,2,2,6), ScoringCategory.FULL_HOUSE));
-        assertEquals(0, game.score(new DiceRoll(2,3,4,5,6), ScoringCategory.FULL_HOUSE));
+            Arguments.of(ScoringCategory.LARGE_STRAIGHT, 6, 2, 3, 4, 5, 20),
+            Arguments.of(ScoringCategory.LARGE_STRAIGHT, 2, 3, 4, 5, 6, 20),
+            Arguments.of(ScoringCategory.LARGE_STRAIGHT, 1, 2, 2, 4, 5, 0),
+
+            Arguments.of(ScoringCategory.FULL_HOUSE, 6, 2, 2, 2, 6, 18),
+            Arguments.of(ScoringCategory.FULL_HOUSE, 2, 3, 4, 5, 6, 0)
+        );
     }
 }
