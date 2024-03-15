@@ -75,7 +75,8 @@ public class YatzyTest {
             Arguments.of(ScoringCategory.LARGE_STRAIGHT, 1, 2, 2, 4, 5, 0),
 
             Arguments.of(ScoringCategory.FULL_HOUSE, 6, 2, 2, 2, 6, 18),
-            Arguments.of(ScoringCategory.FULL_HOUSE, 2, 3, 4, 5, 6, 0)
+            Arguments.of(ScoringCategory.FULL_HOUSE, 2, 3, 4, 5, 6, 0),
+            Arguments.of(ScoringCategory.FULL_HOUSE, 2, 2, 2, 1, 3, 0)
         );
     }
 }
