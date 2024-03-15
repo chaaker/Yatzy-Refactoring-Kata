@@ -6,10 +6,8 @@ public class Yatzy {
         return roll.getD1() + roll.getD2() + roll.getD3() + roll.getD4() + roll.getD5();
     }
 
-    public static int yatzy(int... dice) {
-        int[] counts = new int[6];
-        for (int die : dice)
-            counts[die - 1]++;
+    public static int yatzy(DiceRoll roll) {
+        int[] counts = countDice(roll);
         for (int i = 0; i != 6; i++)
             if (counts[i] == 5)
                 return 50;
@@ -54,12 +52,7 @@ public class Yatzy {
     }
 
     public static int score_pair(DiceRoll roll) {
-        int[] counts = new int[6];
-        counts[roll.getD1() - 1]++;
-        counts[roll.getD2() - 1]++;
-        counts[roll.getD3() - 1]++;
-        counts[roll.getD4() - 1]++;
-        counts[roll.getD5() - 1]++;
+        int[] counts = countDice(roll);
         int at;
         for (at = 0; at != 6; at++)
             if (counts[6 - at - 1] >= 2)
@@ -68,12 +61,7 @@ public class Yatzy {
     }
 
     public static int two_pair(DiceRoll roll) {
-        int[] counts = new int[6];
-        counts[roll.getD1() - 1]++;
-        counts[roll.getD2() - 1]++;
-        counts[roll.getD3() - 1]++;
-        counts[roll.getD4() - 1]++;
-        counts[roll.getD5() - 1]++;
+        int[] counts = countDice(roll);
         int n = 0;
         int score = 0;
         for (int i = 0; i < 6; i += 1)
@@ -88,13 +76,7 @@ public class Yatzy {
     }
 
     public static int four_of_a_kind(DiceRoll roll) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[roll.getD1() - 1]++;
-        tallies[roll.getD2() - 1]++;
-        tallies[roll.getD3() - 1]++;
-        tallies[roll.getD4() - 1]++;
-        tallies[roll.getD5() - 1]++;
+        int[] tallies = countDice(roll);
         for (int i = 0; i < 6; i++)
             if (tallies[i] >= 4)
                 return (i + 1) * 4;
@@ -102,13 +84,7 @@ public class Yatzy {
     }
 
     public static int three_of_a_kind(DiceRoll roll) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[roll.getD1() - 1]++;
-        tallies[roll.getD2() - 1]++;
-        tallies[roll.getD3() - 1]++;
-        tallies[roll.getD4() - 1]++;
-        tallies[roll.getD5() - 1]++;
+        int[] tallies = countDice(roll);
         for (int i = 0; i < 6; i++)
             if (tallies[i] >= 3)
                 return (i + 1) * 3;
@@ -116,13 +92,7 @@ public class Yatzy {
     }
 
     public static int smallStraight(DiceRoll roll) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[roll.getD1() - 1] += 1;
-        tallies[roll.getD2() - 1] += 1;
-        tallies[roll.getD3() - 1] += 1;
-        tallies[roll.getD4() - 1] += 1;
-        tallies[roll.getD5() - 1] += 1;
+        int[] tallies = countDice(roll);
         if (tallies[0] == 1 &&
             tallies[1] == 1 &&
             tallies[2] == 1 &&
@@ -133,13 +103,7 @@ public class Yatzy {
     }
 
     public static int largeStraight(DiceRoll roll) {
-        int[] tallies;
-        tallies = new int[6];
-        tallies[roll.getD1() - 1] += 1;
-        tallies[roll.getD2() - 1] += 1;
-        tallies[roll.getD3() - 1] += 1;
-        tallies[roll.getD4() - 1] += 1;
-        tallies[roll.getD5() - 1] += 1;
+        int[] tallies = countDice(roll);
         if (tallies[1] == 1 &&
             tallies[2] == 1 &&
             tallies[3] == 1 &&
@@ -150,7 +114,6 @@ public class Yatzy {
     }
 
     public static int fullHouse(DiceRoll roll) {
-        int[] tallies;
         boolean _2 = false;
         int i;
         int _2_at = 0;
@@ -158,12 +121,7 @@ public class Yatzy {
         int _3_at = 0;
 
 
-        tallies = new int[6];
-        tallies[roll.getD1() - 1] += 1;
-        tallies[roll.getD2() - 1] += 1;
-        tallies[roll.getD3() - 1] += 1;
-        tallies[roll.getD4() - 1] += 1;
-        tallies[roll.getD5() - 1] += 1;
+        int[] tallies = countDice(roll);
 
         for (i = 0; i != 6; i += 1)
             if (tallies[i] == 2) {
@@ -181,6 +139,13 @@ public class Yatzy {
             return _2_at * 2 + _3_at * 3;
         else
             return 0;
+    }
+
+    private static int[] countDice(DiceRoll roll) {
+        int[] counts = new int[6];
+        Arrays.stream(new int[]{roll.getD1(), roll.getD2(), roll.getD3(), roll.getD4(), roll.getD5()})
+            .forEach(die -> counts[die-1]++);
+        return counts;
     }
 }
 
