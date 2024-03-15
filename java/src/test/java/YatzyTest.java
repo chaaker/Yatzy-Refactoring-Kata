@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class YatzyTest {
     private final YatziGame game = new YatziGame();
 
+    /**
+     * Tests scoring logic for various scoring categories with predefined dice rolls.
+     */
     @ParameterizedTest
     @MethodSource("diceRollsAndScores")
     void testScoring(ScoringCategory category, int d1, int d2, int d3, int d4, int d5, int expectedScore) {

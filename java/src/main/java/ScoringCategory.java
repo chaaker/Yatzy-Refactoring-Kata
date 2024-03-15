@@ -4,15 +4,34 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * Enumerates the scoring categories in the Yatzy game, each with a specific scoring strategy.
+ */
 public enum ScoringCategory {
+    /**
+     * Calculates the score for a given dice roll according to the CHANCE rule.
+     * The CHANCE score is the sum of all dice values.
+     */
     CHANCE(roll -> Arrays.stream(roll.getDiceValues()).sum()),
+    /**
+     * Calculates the score for a given dice roll according to the YATZY rule.
+     * YATZY scores 50 points if all dice have the same value, otherwise scores 0.
+     */
     YATZY(roll -> Arrays.stream(roll.getDiceValues()).distinct().count() == 1 ? 50 : 0),
+    /**
+     * Calculates the score for dice matching the specified value.
+     * This strategy is used for scoring categories ONES to SIXES.
+     */
     ONES(sumOfDiceMatching(1)),
     TWOS(sumOfDiceMatching(2)),
     THREES(sumOfDiceMatching(3)),
     FOURS(sumOfDiceMatching(4)),
     FIVES(sumOfDiceMatching(5)),
     SIXES(sumOfDiceMatching(6)),
+    /**
+     * Calculates the score for a dice roll based on finding the highest value with at least two occurrences.
+     * Used for scoring categories like ONE_PAIR.
+     */
     ONE_PAIR(roll -> findHighestValueWithOccurrences(roll, 2) * 2),
     TWO_PAIR(roll -> {
         int[] pairs = findDiceValuesFormingPairs(roll);
@@ -20,8 +39,16 @@ public enum ScoringCategory {
     }),
     THREE_OF_A_KIND(roll -> findHighestValueWithOccurrences(roll, 3) * 3),
     FOUR_OF_A_KIND(roll -> findHighestValueWithOccurrences(roll, 4) * 4),
+    /**
+     * Determines if a roll is a straight by checking for sequential dice values.
+     * This method is used for scoring SMALL_STRAIGHT and LARGE_STRAIGHT categories.
+     */
     SMALL_STRAIGHT(roll -> checkForSequentialDiceValues(roll, 1, 5) ? 15 : 0),
     LARGE_STRAIGHT(roll -> checkForSequentialDiceValues(roll, 2, 6) ? 20 : 0),
+    /**
+     * Evaluates the dice roll for a FULL HOUSE, requiring a three-of-a-kind and a pair.
+     * Scores the sum of all dice if the criteria are met, otherwise scores 0.
+     */
     FULL_HOUSE(roll -> {
         Map<Integer, Long> counts = countDiceValuesOccurrences(roll);
         boolean hasThreeOfAKind = counts.containsValue(3L);
@@ -31,10 +58,21 @@ public enum ScoringCategory {
 
     private final ScoringStrategy strategy;
 
+    /**
+     * Initializes the category with a specific scoring strategy.
+     *
+     * @param strategy The scoring strategy unique to the scoring category.
+     */
     ScoringCategory(ScoringStrategy strategy) {
         this.strategy = strategy;
     }
 
+    /**
+     * Calculates and returns the score for a given dice roll in this category.
+     *
+     * @param roll The dice roll to be scored.
+     * @return The calculated score according to the category's rules.
+     */
     public int score(DiceRoll roll) {
         return this.strategy.calculateScore(roll);
     }
